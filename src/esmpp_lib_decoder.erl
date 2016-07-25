@@ -357,7 +357,7 @@ get_tag(<<TagId:16/integer, Rest/binary>>, List) ->
             {Tail, [{congestion_state, Value}|List]};   
         1281 ->
             {Value, Tail} = parse_integer_tag(Rest),
-            {Tail, [{ussd_service_op, Value}]};
+            {Tail, [{ussd_service_op, Value}|List]};
         1536 ->
             {Value, Tail} = parse_integer_tag(Rest),
             {Tail, [{broadcast_channel_indicator, Value}|List]};
@@ -398,7 +398,7 @@ get_tag(<<TagId:16/integer, Rest/binary>>, List) ->
         1549 ->
             {Val, Tail} = parse_other_tag(Rest),
             Value = parse_c_octets(Val, []), 
-            {Tail, [{source_network_id, Value}]};
+            {Tail, [{source_network_id, Value}|List]};
         1550 ->
             {Val, Tail} = parse_other_tag(Rest),
             Value = parse_c_octets(Val, []), 
