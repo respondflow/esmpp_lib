@@ -1,7 +1,7 @@
 {application, esmpp_lib,
  [
   {description, "Smpp library"},
-  {vsn, "0.8.17"},
+  {vsn, "0.8.18"},
   {registered, []},
   {modules, []},
   {applications, [

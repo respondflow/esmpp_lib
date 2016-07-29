@@ -105,7 +105,7 @@ exam_submit(Timeout, TsNow, State, [H|T], Acc) ->
     {Key, {Handler, TsOld, Socket}} = H,
     Acc1 = case timer:now_diff(TsNow, TsOld) > Timeout*1000000 of
         true ->
-            ok = Handler:submit_error(WorkerPid, Socket, Key),
+            ok = Handler:submit_error(WorkerPid, Key),
             Acc;
         false ->
             [H|Acc]

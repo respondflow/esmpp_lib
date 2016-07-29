@@ -349,8 +349,7 @@ get_tag(<<TagId:16/integer, Rest/binary>>, List) ->
             {Value, Tail} = parse_integer_tag(Rest),
             {Tail, [{more_messages_to_send, Value}|List]};
         1063 ->
-            {Bin, Tail} = parse_other_tag(Rest),
-            <<Value:8/integer>> = Bin,
+            {Value, Tail} = parse_integer_tag(Rest),
             {Tail, [{message_state, Value}|List]};
         1064 ->
             {Value, Tail} = parse_integer_tag(Rest),
@@ -428,8 +427,14 @@ get_tag(<<TagId:16/integer, Rest/binary>>, List) ->
             {Value, Tail} = parse_other_tag(Rest),
             {Tail, [{ms_validity, Value}|List]};
         4876 ->
-            <<0:16/integer, Tail/binary>> = Rest,
-            {Tail, [{alert_on_message_delivery, <<"no_value">>}|List]}; %%TODO testing with native SMSC for accuracy work
+                    <<L:16/integer, Bin/binary>> = Rest,
+            case L of
+                0 ->
+                    {Bin, [{alert_on_message_delivery, 0}|List]}; %%TODO testing with native SMSC for accuracy work
+                _ ->
+                    {Value, Tail} = parse_integer_tag(Rest),
+                    {Tail, [{alert_on_message_delivery, Value}|List]}
+            end;
         4992 ->
             {Value, Tail} = parse_integer_tag(Rest),
             {Tail, [{its_reply_type, Value}|List]};
