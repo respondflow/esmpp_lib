@@ -349,7 +349,8 @@ get_tag(<<TagId:16/integer, Rest/binary>>, List) ->
             {Value, Tail} = parse_integer_tag(Rest),
             {Tail, [{more_messages_to_send, Value}|List]};
         1063 ->
-            {Value, Tail} = parse_integer_tag(Rest),
+            {Bin, Tail} = parse_other_tag(Rest),
+            <<Value:8/integer>> = Bin,
             {Tail, [{message_state, Value}|List]};
         1064 ->
             {Value, Tail} = parse_integer_tag(Rest),
