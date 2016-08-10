@@ -27,15 +27,15 @@
 %% ------------------------------------------------------------------
 
 -callback submit_sm_resp_handler(pid(), list()) -> ok.
--callback data_sm_handler(pid(), list()) -> ok.
--callback data_sm_resp_handler(pid(), list()) -> ok.
--callback deliver_sm_handler(pid(), list()) -> ok.
--callback query_sm_resp_handler(pid(), list()) -> ok.
--callback unbind_handler(pid()) -> ok.
--callback outbind_handler(pid(), term()) -> ok.
--callback network_error(pid(), term()) -> ok.
--callback decoder_error(pid(), term()) -> ok.
--callback submit_error(pid(), term()) -> ok.
+-callback data_sm_handler(pid(), list())        -> ok.
+-callback data_sm_resp_handler(pid(), list())   -> ok.
+-callback deliver_sm_handler(pid(), list())     -> ok.
+-callback query_sm_resp_handler(pid(), list())  -> ok.
+-callback unbind_handler(pid())                 -> ok.
+-callback outbind_handler(pid(), term())        -> ok.
+-callback network_error(pid(), term())          -> ok.
+-callback decoder_error(pid(), term())          -> ok.
+-callback submit_error(pid(), term())           -> ok.
 
 %% ------------------------------------------------------------------
 %% API Function Definitions
@@ -264,7 +264,7 @@ create_resp([H|T], Transport, Socket, WorkerPid, Handler, ProcessingPid) ->
             ok;
         {close_session, Bin} ->
             ok = try_send(Transport, Socket, Bin, WorkerPid, Handler),
-            ok = Handler:network_error(Socket, close_session);
+            ok = Handler:network_error(WorkerPid, close_session);
         _ ->
             ok = try_send(Transport, Socket, Resp, WorkerPid, Handler)
     end,
