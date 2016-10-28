@@ -70,7 +70,7 @@ Mandatory parameters include next things:
 * transport, example {transport, tcp} - transport - ssl or tcp,
 * submit timeout, example {submit_timeout, 60} - time during which 
         the message should be delivered,
-* enuire link timeout, example {enquire_timeout, 60} must bev integer
+* enuire link timeout, example {enquire_timeout, 60} must be integer
         - time after which the message enquire_link will be send.
         If this parameter is absent, enquire_link will not send.
 * handler — your own module for handle smpp packet from SMSC, 
@@ -185,3 +185,12 @@ When you will embed esmpp_lib in your application you must remove a module
 my_sms.erl. This is test module and the callback function must be described in 
 module of your application. Also, parameter "handler" in configuration 
 parameters must contain name of your module as atom.
+
+This version of the library describes smpp protocol. For integration into
+systems with a large number of gateways and many of channels on each gateway,
+need for more options in submit() function. For example, You can convay
+the message id from the database and the pid of the process, which works
+with a database to esmpp_lib_worker module through submit() function.
+Then need associate these parameters with sequense_number and message_id
+after sending the message and receiving submit_sm_resp from the operator.
+This will create link between your application and smpp library.
