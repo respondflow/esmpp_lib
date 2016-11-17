@@ -69,7 +69,7 @@ Mandatory parameters include next things:
 * dest_addr_npi, example {dest_addr_npi, 1}, must be integer,
 * transport, example {transport, tcp} - transport - ssl or tcp,
 * submit timeout, example {submit_timeout, 60} - time during which 
-        the message should be delivered,
+        the message should be delivered to SMSC,
 * enuire link timeout, example {enquire_timeout, 60} must be integer
         - time after which the message enquire_link will be send.
         If this parameter is absent, enquire_link will not send.
