@@ -81,13 +81,14 @@ unbind(WorkerPid) ->
 
 init(Param) ->
     Mode = proplists:get_value(mode, Param),
-    {ok, _} = timer:send_after(10, {bind, Mode}),
     WorkerPid = self(),
+    _ = erlang:send_after(10, WorkerPid, {bind, Mode}),
     {ok, ProcessingPid} = esmpp_lib_submit_processing:start_link([{parent_pid, WorkerPid}|Param]),
     Param1 = [{processing_pid, ProcessingPid}, {sar, 0}, {seq_n, 0}, {worker_pid, WorkerPid}|Param],            
     {ok, Param1}.
 
-handle_call(_Request, _From, State) ->
+handle_call(Request, _From, State) ->
+    ?LOG_ERROR("Unknown call request ~p~n", [Request]),
     {reply, ok, State}.
 
 handle_cast({submit, List}, State) ->   
@@ -132,7 +133,8 @@ handle_cast({unbind, []}, State) ->
     ok = Handler:unbind_handler(WorkerPid),
     WorkerPid ! {terminate, unbind},
     {noreply, accumulate_seq_num(State)}; 
-handle_cast(_Msg, State) ->
+handle_cast(Msg, State) ->
+    ?LOG_ERROR("Unknown cast msg ~p~n", [Msg]),
     {noreply, State}.
 
 handle_info({bind, Mode}, Param) ->
@@ -166,11 +168,11 @@ handle_info({get_state, ListenPid}, State) ->
 handle_info({terminate, Reason}, State) ->
     {stop, Reason, State};
 handle_info(Info, State) ->
-    ?LOG_INFO("Massage for nothing ~p~n", [Info]),
+    ?LOG_ERROR("Unknown info msg ~p~n", [Info]),
     {noreply, State}.
 
 terminate(Reason, State) -> 
-    ?LOG_INFO("Process terminate with reason ~p state is ~p~n", [Reason, State]),
+    ?LOG_CRITICAL("Process terminate with reason ~p state is ~p~n", [Reason, State]),
     ok.
 
 code_change(_OldVsn, State, _Extra) ->

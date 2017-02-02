@@ -142,15 +142,15 @@ for handle responses from SMSC. Module my_sms.erl in this library is example of
 handler. Module must contain following functions (handlers):
 
 ```
-submit_sm_resp_handler(pid(), list()) -> ok.
-data_sm_handler(pid(), list()) -> ok.
-data_sm_resp_handler(pid(), list()) -> ok.
-deliver_sm_handler(pid(), list()) -> ok.
-query_sm_handler(pid(), list()) -> ok.
-unbind_handler(pid()) -> ok.
-outbind_handler(pid(), term()) -> ok.
-network_error(pid(), term()) -> ok.
-decoder_error(pid(), term()) -> ok.
+submit_sm_resp_handler(pid(), list())       -> ok.
+data_sm_handler(pid(), list())              -> ok.
+data_sm_resp_handler(pid(), list())         -> ok.
+deliver_sm_handler(pid(), list())           -> ok.
+query_sm_handler(pid(), list())             -> ok.
+unbind_handler(pid())                       -> ok.
+outbind_handler(pid(), term())              -> ok.
+network_error(pid(), term())                -> ok.
+decoder_error(pid(), term())                -> ok.
 submit_error(pid(), term(), term(), term()) -> ok
 ```
 All this functions must return atom "ok".
@@ -177,7 +177,6 @@ You can close session by API function esmpp_lib_worker:unbind(Pid). In the case
 of close session, filed bind or network problems process esmpp_lib_worker will
 be terminated automatically. 
 
-
 Embedding
 ---------
 
@@ -194,3 +193,23 @@ with a database to esmpp_lib_worker module through submit() function.
 Then need associate these parameters with sequense_number and message_id
 after sending the message and receiving submit_sm_resp from the operator.
 This will create link between your application and smpp library.
+
+Testing
+-------
+
+Free version of SMSC Selenium is used for tetsing library.
+http://www.seleniumsoftware.com/user-guide.htm
+It must be configured with parameters:
+
+    host - 127.0.01
+    port - 2775
+    system_id - smppclient1
+
+Run Erlang console with command
+
+erl -pa $PWD/ebin $PWD/deps/*/ebin
+
+Run test with command
+
+ct:run_test([{spec, "test/test.spec"}]).
+     

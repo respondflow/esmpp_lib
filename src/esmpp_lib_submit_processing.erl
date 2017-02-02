@@ -35,13 +35,14 @@ start_link(State) ->
 init(State) ->
     WorkerPid = self(),
     SubmitTimeout = get_timeout(submit_timeout, State),
-    {ok, TRef} = timer:send_after(60000, {exam_submit, SubmitTimeout}),
+    TRef = erlang:send_after(60000, WorkerPid, {exam_submit, SubmitTimeout}),
     {ok, [{submit_check, []}, {worker_pid, WorkerPid}, {submit_tref, TRef}|State]}.
 
-handle_call(_Request, _From, State) ->
+handle_call(Request, _From, State) ->
+    ?LOG_ERROR("Unknown call request ~p~n", [Request]),
     {reply, ok, State}.
 handle_cast(Msg, State) ->
-    ?LOG_DEBUG("Unknown cast msg ~p~n", [Msg]),
+    ?LOG_ERROR("Unknown cast msg ~p~n", [Msg]),
     {noreply, State}.
 
 handle_info({processing_submit, Handler, List, 
@@ -55,11 +56,12 @@ handle_info({update_state, {add_submit, Value}}, State) ->
     {noreply, State1};
 handle_info({exam_submit, SubmitTimeout}, State) ->
     OldTRef = proplists:get_value(submit_tref, State),
-    {ok, cancel} = timer:cancel(OldTRef),
+    _ = erlang:cancel_timer(OldTRef),
     ListSubmit = proplists:get_value(submit_check, State),
     TsNow = os:timestamp(),
     ok = exam_submit(SubmitTimeout, TsNow, State, ListSubmit, []),
-    {ok, NewTRef} = timer:send_after(60000, {exam_submit, SubmitTimeout}),
+    WorkerPid = proplists:get_value(worker_pid, State),
+    NewTRef = erlang:send_after(60000, WorkerPid, {exam_submit, SubmitTimeout}),
     State1 = lists:keyreplace(submit_tref, 1, State, {submit_tref, NewTRef}),
     {noreply, State1};
 handle_info({update_state, {submit_check, Acc}}, State) ->
@@ -70,7 +72,7 @@ handle_info({update_state, {delete_submit, SeqNum}}, State) ->
     State1 = lists:keyreplace(submit_check, 1, State, {submit_check, ListSubmit}),
     {noreply, State1};
 handle_info(Info, State) ->
-    ?LOG_DEBUG("Unknown info msg ~p~n", [Info]),
+    ?LOG_ERROR("Unknown info msg ~p~n", [Info]),
     {noreply, State}.
 
 terminate(_Reason, _State) ->
@@ -102,7 +104,7 @@ exam_submit(_Timeout, _TsNow, State, [], Acc) ->
 exam_submit(Timeout, TsNow, State, [H|T], Acc) ->
     WorkerPid = proplists:get_value(worker_pid, State),
     Handler = proplists:get_value(handler, State),
-    {Key, {Handler, TsOld, Socket}} = H,
+    {Key, {Handler, TsOld, _Socket}} = H,
     Acc1 = case timer:now_diff(TsNow, TsOld) > Timeout*1000000 of
         true ->
             ok = Handler:submit_error(WorkerPid, Key),
