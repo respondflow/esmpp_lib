@@ -207,9 +207,13 @@ It must be configured with parameters:
 
 Run Erlang console with command
 
-erl -pa $PWD/ebin $PWD/deps/*/ebin
+ erl -pa $PWD/ebin $PWD/deps/*/ebin
 
 Run test with command
 
-ct:run_test([{spec, "test/test.spec"}]).
+ ct:run_test([{spec, "test/test.spec"}]).
+
+All logs will be moved to the test/logs.
+The directory must exist before the tests are run, 
+otherwise Common Test will complain.
      
