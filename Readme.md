@@ -201,7 +201,7 @@ Free version of SMSC Selenium is used for tetsing library.
 http://www.seleniumsoftware.com/user-guide.htm
 It must be configured with parameters:
 
-    host - 127.0.01
+    host - 127.0.0.1
     port - 2775
     system_id - smppclient1
 

@@ -2,7 +2,7 @@
 {application, esmpp_lib,
  [
   {description, "Smpp library"},
-  {vsn, "0.9.3"},
+  {vsn, "0.9.4"},
   {registered, []},
   {modules, []},
   {applications, [
