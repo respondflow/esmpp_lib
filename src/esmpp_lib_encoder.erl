@@ -79,7 +79,8 @@ generic_nack(List) ->
     ErrCode = proplists:get_value(status, List),
     ?GENERIC_NACK(SeqNum, ErrCode).
 
-submit_sm(List, Param) -> 
+submit_sm(List, Param) ->
+    Handler = proplists:get_value(handler, Param), 
     Txt = get_binary(text, List),
     SeqNum = proplists:get_value(seq_n, Param),
     Daddr = get_binary(dest_addr, List),
@@ -97,6 +98,7 @@ submit_sm(List, Param) ->
             SaddrNpi = proplists:get_value(source_addr_npi, Param),
             DaddrTon = proplists:get_value(dest_addr_ton, Param),
             DaddrNpi = proplists:get_value(dest_addr_npi, Param),
+            ok = Handler:sequence_number_handler([{sequence_number, SeqNum}|List]),
             Bin = ?SUBMIT_SM(1234, SeqNum, ServType, LenType, SaddrTon, SaddrNpi, 
                         Saddr, LenSaddr, DaddrTon, DaddrNpi, Daddr, LenDaddr,
                         Encode, LenTxt, Text),
@@ -209,6 +211,7 @@ assemble_submit({_SarTotSeg, []}, _SarRefNum, _List, _Param, _Encode, Acc) ->
     lists:reverse(Acc);
 assemble_submit({SarTotSeg, [H|T]}, SarRefNum, List, Param, Encode, Acc) ->
     {SarSegNum, Chunk} = H,
+    Handler = proplists:get_value(handler, Param), 
     Daddr = get_binary(dest_addr, List),
     SeqNum = proplists:get_value(seq_n, Param),
     ServType = get_binary(service_type, Param),
@@ -222,6 +225,8 @@ assemble_submit({SarTotSeg, [H|T]}, SarRefNum, List, Param, Encode, Acc) ->
     SaddrNpi = proplists:get_value(source_addr_npi, Param),
     DaddrTon = proplists:get_value(dest_addr_ton, Param),
     DaddrNpi = proplists:get_value(dest_addr_npi, Param),
+    NewList = lists:keyreplace(text, 1, List, {text, Chunk}),
+    ok = Handler:sequence_number_handler([{sequence_number, SeqNum}|NewList]),
     Bin = ?SUBMIT_SM_CUT(1234, SeqNum, ServType, LenType, SaddrTon, SaddrNpi, 
                 Saddr, LenSaddr, DaddrTon, DaddrNpi, Daddr, LenDaddr,
                 Encode, LenMsg, Chunk, LenChunk, SarRefNum, SarSegNum, SarTotSeg),

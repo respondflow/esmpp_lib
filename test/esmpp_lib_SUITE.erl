@@ -95,10 +95,10 @@ init_per_suite(Config) ->
                     {system_id, <<"smppclient1">>}, {mode, transceiver}, 
                     {interface_version, "3.4"}, {enquire_timeout, 30}, 
                     {submit_timeout, 60}, {system_type, ""}, {service_type, ""}, 
-                    {addr_ton, 5}, {addr_npi, 0}, {source_addr, <<"380920003700">>}, 
+                    {addr_ton, 5}, {addr_npi, 0}, {source_addr, <<"380920003100">>}, 
                     {source_addr_ton, 5}, {source_addr_npi, 0}, {dest_addr_ton, 1}, 
                     {dest_addr_npi, 1}, {handler, my_sms}],
-    SubmitOptions = [{source_addr, <<"test">>}, {dest_addr, <<"380666822872">>}], 
+    SubmitOptions = [{source_addr, <<"test">>}, {dest_addr, <<"380667833873">>}], 
     {ok, Pid} = esmpp_lib_worker:start_link(ConnectOptions),
     ok = ct:pal("Connect OK ~n", []),
     [{connect_options, ConnectOptions}, {submit_options, SubmitOptions}, {pid, Pid}|Config].

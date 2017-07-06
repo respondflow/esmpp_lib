@@ -13,12 +13,16 @@
 
 -export([submit_sm_resp_handler/2, deliver_sm_handler/2, data_sm_handler/2, 
             data_sm_resp_handler/2, query_sm_resp_handler/2, unbind_handler/1,
-            outbind_handler/2, submit_error/2, network_error/2, decoder_error/2]).
+            outbind_handler/2, submit_error/2, network_error/2, decoder_error/2,
+            sequence_number_handler/1]).
 
 
 %% ------------------------------------------------------------------
 %% Behaviour Function Definitions
 %% ------------------------------------------------------------------
+
+sequence_number_handler(List) ->
+    ?LOG_INFO("Sequence number list ~p~n", [List]).
 
 submit_sm_resp_handler(Pid, List) ->
     ?LOG_INFO("Submit resp pid ~p msg: ~p~n", [Pid, List]).

@@ -117,11 +117,14 @@ esmpp_lib_worker:submit(Pid, [{source_addr, <<"380665555555">>},
                                 {dest_addr, <<"380571111100">>}, 
                                 {text, <<"test">>}]).
 ```
-This function will send text "test" to phone "380571111100" and return sequence 
-number of packet. This sequence number must be save, after submit_timeout if 
-submit_sm_resp are not received, message with this sequence number is lost.
-Sequence number of messages which is lost pass in handler 
-submit_error(Pid, Socket, SeqNum).
+This function will send text "test" to phone "380571111100" and return ok. 
+Sequence number, source number, destination number and text of message  
+will return as proplist in callback function sequence_number_handler(list()).
+This sequence number must be save,in order to later associate it with the 
+"message_id" after receiving the package submit_sm_resp. In other case if 
+submit_sm_resp are not received, message with this sequence number is lost
+and requires re-sending or logging accident. Sequence number of messages 
+which is lost pass in handler submit_error(Pid, Socket, SeqNum).
 
 Dispatch of cyrillic text is support. Sending of long message also 
 is support (method udh).Using api-function query_sm(Pid, Proplist) will be able 
@@ -142,6 +145,7 @@ for handle responses from SMSC. Module my_sms.erl in this library is example of
 handler. Module must contain following functions (handlers):
 
 ```
+sequence_number_handler(list())             -> ok.
 submit_sm_resp_handler(pid(), list())       -> ok.
 data_sm_handler(pid(), list())              -> ok.
 data_sm_resp_handler(pid(), list())         -> ok.

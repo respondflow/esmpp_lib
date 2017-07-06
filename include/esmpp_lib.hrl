@@ -1,9 +1,8 @@
-
--define(LOG_DEBUG(Format, Args),    lager:debug(Format, Args)).
--define(LOG_INFO(Format, Args),     lager:info(Format, Args)).
--define(LOG_WARNING(Format, Args),  lager:warning(Format, Args)).
--define(LOG_ERROR(Format, Args),    lager:error(Format, Args)).
--define(LOG_CRITICAL(Format, Args), lager:critical(Format, Args)).
+-define(LOG_DEBUG(Format, Args),    lager:log(debug, self(), Format, Args)).
+-define(LOG_INFO(Format, Args),     lager:log(info, self(), Format, Args)).
+-define(LOG_WARNING(Format, Args),  lager:log(warning, self(), Format, Args)).
+-define(LOG_ERROR(Format, Args),    lager:log(error, self(), Format, Args)).
+-define(LOG_CRITICAL(Format, Args), lager:log(critical, self(), Format, Args)).
 
 -define(BIND(Length, ComId, SeqNum, SysId, LenId, Pass, LenP, SysType, LenT,
                 IntVer, AddrTon, AddrNpi, AddrRange, LenR), <<
