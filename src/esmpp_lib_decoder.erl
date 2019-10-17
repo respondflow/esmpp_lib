@@ -454,6 +454,24 @@ get_tag(<<TagId:16/integer, Rest/binary>>, List) ->
         5124 ->                                         %% official specification not support this tag !!! This option is from kannel SMSC
             {Value, Tail} = parse_other_tag(Rest),
             {Tail, [{mbsessionid, Value}|List]};
+        5136 ->                                         %% official specification not support this tag !!!
+            {Value, Tail} = parse_other_tag(Rest),
+            {Tail, [{mcc, Value}|List]};
+        5138 ->                                         %% official specification not support this tag !!!
+            {Value, Tail} = parse_other_tag(Rest),
+            {Tail, [{mobile_country_code, Value}|List]};
+        5139 ->                                         %% official specification not support this tag !!!
+            {Value, Tail} = parse_other_tag(Rest),
+            {Tail, [{mobile_network_code, Value}|List]};
+        5142 ->                                         %% official specification not support this tag !!!
+            {Value, Tail} = parse_other_tag(Rest),
+            {Tail, [{mcc_mnc, Value}|List]};
+        5204 ->                                         %% official specification not support this tag !!!
+            {Value, Tail} = parse_other_tag(Rest),
+            {Tail, [{vk, Value}|List]};
+        5472 ->                                         %% official specification not support this tag !!!
+            {Value, Tail} = parse_other_tag(Rest),
+            {Tail, [{network_mcc_mnc, Value}|List]};
         _ ->
             ?LOG_WARNING("Unknown smpp option ~p~n", [TagId]),
             {<<>>, List}

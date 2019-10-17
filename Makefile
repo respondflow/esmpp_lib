@@ -1,7 +1,7 @@
 PROJECT = esmpp_lib
 
 DEPS = lager
-dep_lager = https://github.com/basho/lager.git 3.2.4
+dep_lager = https://github.com/erlang-lager/lager.git 3.6.8
 
 ERLC_OPTS = "+{parse_transform, lager_transform}" "+debug_info"
 
