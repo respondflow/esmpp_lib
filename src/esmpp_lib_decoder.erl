@@ -466,6 +466,9 @@ get_tag(<<TagId:16/integer, Rest/binary>>, List) ->
         5142 ->                                         %% official specification not support this tag !!!
             {Value, Tail} = parse_other_tag(Rest),
             {Tail, [{mcc_mnc, Value}|List]};
+        5144 ->                                         %% official specification not support this tag !!!
+            {Value, Tail} = parse_other_tag(Rest),
+            {Tail, [{price_per_message, Value}|List]};
         5204 ->                                         %% official specification not support this tag !!!
             {Value, Tail} = parse_other_tag(Rest),
             {Tail, [{vk, Value}|List]};
