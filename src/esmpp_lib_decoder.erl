@@ -5,15 +5,15 @@
 -export([decode/2]).
 
 %% API
--spec decode(binary(), list()) -> 
+-spec decode(binary(), list()) ->
     list().
 decode(<<>>, List) ->
     List;
 decode(<<Length:32/integer, Id:32/integer, Rest/binary>>, Acc) ->
     LenOne = Length - 8,
     <<One:LenOne/binary, Tail/binary>> = Rest,
-    Tuple = case Id of 
-        2147483648 -> 
+    Tuple = case Id of
+        2147483648 ->
             generic_nack(One);
         2147483649 ->
             bind_receiver_resp(One);
@@ -67,9 +67,9 @@ decode(<<Length:32/integer, Id:32/integer, Rest/binary>>, Acc) ->
         2147483906 ->   {undefined, reserved};
         260 ->          {undefined, reserved};
         2147483908 ->   {undefined, reserved};
-        65536 ->        {undefined, reserved}; 
+        65536 ->        {undefined, reserved};
         2147549184 ->   {undefined, reserved};
-        66048 ->        {undefined, reserved}; 
+        66048 ->        {undefined, reserved};
         2147549696 ->   {undefined, reserved}
     end,
     decode(Tail, [Tuple|Acc]).
@@ -108,7 +108,7 @@ bind_transceiver_resp(<<Status:32/integer, SeqNum:32/integer, Rest/binary>>) ->
 
 generic_nack(<<ErrCode:32/integer, SeqNum:32/integer>>) ->
     {generic_nack, ErrCode, SeqNum, []}.
-    
+
 submit_sm_resp(<<Status:32/integer, SeqNum:32/integer, Rest/binary>>) ->
     case byte_size(Rest)>0 of
         true ->
@@ -119,11 +119,11 @@ submit_sm_resp(<<Status:32/integer, SeqNum:32/integer, Rest/binary>>) ->
             {submit_sm_resp, Status, SeqNum, [{message_id, MsgId}|List]};
         false ->
             {submit_sm_resp, Status, SeqNum, []}
-    end.  
+    end.
 
 deliver_sm(<<0:32/integer, SeqNum:32/integer, Rest/binary>>) ->
     Len = byte_size(parse_c_octets(Rest, []))+1,
-    <<SrvT:Len/binary, STon:8/integer, SNpi:8/integer, Tail/binary>> = Rest, 
+    <<SrvT:Len/binary, STon:8/integer, SNpi:8/integer, Tail/binary>> = Rest,
     Len1 = byte_size(parse_c_octets(Tail, []))+1,
     <<Saddr:Len1/binary, DTon:8/integer, DNpi:8/integer, Tail1/binary>> = Tail,
     Len2 = byte_size(parse_c_octets(Tail1, []))+1,
@@ -131,21 +131,21 @@ deliver_sm(<<0:32/integer, SeqNum:32/integer, Rest/binary>>) ->
     Len3 = byte_size(parse_c_octets(Tail2, []))+1,
     <<_Shed:Len3/binary, Tail3/binary>> = Tail2,
     Len4 = byte_size(parse_c_octets(Tail3, []))+1,
-    <<_Val:Len4/binary, RegDel:8/integer, _Repl:8/integer, DataC:8/integer, 
-        _SmD:8/integer, SmL:8/integer, Msg:SmL/binary, Opt/binary>> = Tail3,  
+    <<_Val:Len4/binary, RegDel:8/integer, _Repl:8/integer, DataC:8/integer,
+        _SmD:8/integer, SmL:8/integer, Msg:SmL/binary, Opt/binary>> = Tail3,
     SourceAddr = parse_c_octets(Saddr, []),
     ServType = parse_c_octets(SrvT, []),
     DestAddr = parse_c_octets(Daddr, []),
     List = get_tag(Opt, []),
-    {deliver_sm, 0, SeqNum, [{source_addr, SourceAddr}, {destination_addr, DestAddr}, 
-    {service_type, ServType}, {source_addr_ton, STon}, {source_addr_npi, SNpi}, 
+    {deliver_sm, 0, SeqNum, [{source_addr, SourceAddr}, {destination_addr, DestAddr},
+    {service_type, ServType}, {source_addr_ton, STon}, {source_addr_npi, SNpi},
     {dest_addr_ton, DTon}, {dest_addr_npi, DNpi},
-    {short_message, Msg}, {data_coding, DataC}, {registered_delivery, RegDel}, 
+    {short_message, Msg}, {data_coding, DataC}, {registered_delivery, RegDel},
     {protocol_id, ProtId}, {priority_flag, PrFl}, {esm_class, EsmCl}|List]}.
 
 data_sm(<<Status:32/integer, SeqNum:32/integer, Rest/binary>>) ->
     Len = byte_size(parse_c_octets(Rest, []))+1,
-    <<SrvT:Len/binary, STon:8/integer, SNpi:8/integer, Tail/binary>> = Rest, 
+    <<SrvT:Len/binary, STon:8/integer, SNpi:8/integer, Tail/binary>> = Rest,
     Len1 = byte_size(parse_c_octets(Tail, []))+1,
     <<Saddr:Len1/binary, DTon:8/integer, DNpi:8/integer, Tail1/binary>> = Tail,
     Len2 = byte_size(parse_c_octets(Tail1, []))+1,
@@ -155,11 +155,11 @@ data_sm(<<Status:32/integer, SeqNum:32/integer, Rest/binary>>) ->
     ServType = parse_c_octets(SrvT, []),
     List = get_tag(Opt, []),
     {data_sm, Status, SeqNum, [{source_addr, SourceAddr}, {data_coding, DataC},
-    {service_type, ServType}, {source_addr_ton, STon}, {source_addr_npi, SNpi}, 
+    {service_type, ServType}, {source_addr_ton, STon}, {source_addr_npi, SNpi},
     {dest_addr_ton, DTon}, {dest_addr_npi, DNpi},{registered_delivery, RDel},
     {destination_addr, DestAddr}, {esm_class, EsmCl}|List]}.
 
-data_sm_resp(<<Status:32/integer, SeqNum:32/integer, Rest/binary>>) -> 
+data_sm_resp(<<Status:32/integer, SeqNum:32/integer, Rest/binary>>) ->
     case byte_size(Rest)>0 of
         true ->
             MsgId = parse_c_octets(Rest, []),
@@ -169,18 +169,18 @@ data_sm_resp(<<Status:32/integer, SeqNum:32/integer, Rest/binary>>) ->
             {data_sm_resp, Status, SeqNum, [{message_id, MsgId}|List]};
         false ->
             {data_sm_resp, Status, SeqNum, []}
-    end.  
+    end.
 
-query_sm_resp(<<Status:32/integer, SeqNum:32/integer, Rest/binary>>) -> 
+query_sm_resp(<<Status:32/integer, SeqNum:32/integer, Rest/binary>>) ->
     case byte_size(Rest)>0 of
         true ->
             MsgId = parse_c_octets(Rest, []),
-            <<MsgState:8/integer, ErrCode:8/integer>> = binary:part(Rest,{byte_size(Rest), - 2}),     
+            <<MsgState:8/integer, ErrCode:8/integer>> = binary:part(Rest,{byte_size(Rest), - 2}),
             {query_sm_resp, Status, SeqNum, [{message_id, MsgId}, {message_state, MsgState}, {error_code, ErrCode}]};
         false ->
             {query_sm_resp, Status, SeqNum, []}
-    end.  
-    
+    end.
+
 unbind(<<0:32/integer, SeqNum:32/integer>>) ->
     {unbind, 0, SeqNum, []}.
 
@@ -207,43 +207,44 @@ cancel_sm_resp(<<Status:32/integer, SeqNum:32/integer>>) ->
     {cancel_sm_resp, Status, SeqNum, []}.
 
 alert_notification(<<0:32/integer, SeqNum:32/integer, Rest/binary>>) ->
-    <<_STon:8/integer, _SNpi:8/integer, Tail/binary>> = Rest,    
+    <<_STon:8/integer, _SNpi:8/integer, Tail/binary>> = Rest,
     Len = byte_size(parse_c_octets(Tail, []))+1,
     <<_SAddr:Len/binary, _ETon:8/integer, _ENpi:8/integer, Tail1/binary>> = Tail,
     Len1 = byte_size(parse_c_octets(Tail1, []))+1,
     <<_EAddr:Len1/binary, Tail2/binary>> = Tail1,
-    List = get_tag(Tail2, []), 
+    List = get_tag(Tail2, []),
     {alert_notification, 0, SeqNum, List}.
-    
-get_smpp_version(Rest) ->
-    case binary:part(Rest, {byte_size(Rest), -5}) of 
-        <<528:16/integer, 1:16/integer, Ver:8/integer>> -> 
-            case Ver of
-                80 -> "5.0";
-                52 -> "3.4"
-            end;
-        _ ->
-            "3.4"
-    end. 
-            
+
+get_smpp_version(_Rest) ->
+    "5.0".
+    % case binary:part(Rest, {byte_size(Rest), -5}) of
+    %     <<528:16/integer, 1:16/integer, Ver:8/integer>> ->
+    %         case Ver of
+    %             80 -> "5.0";
+    %             52 -> "3.4"
+    %         end;
+    %     _ ->
+    %         "3.4"
+    % end.
+
 parse_c_octets(<<H:1/binary, T/binary>>, List) ->
-    case H of 
+    case H of
         <<0>> ->
             list_to_binary(lists:reverse(List));
         _ ->
             parse_c_octets(T, [H|List])
     end.
 
-get_tag(<<>>, List) ->                              
+get_tag(<<>>, List) ->
     List;
 get_tag(<<TagId:16/integer, Rest/binary>>, List) ->
     {Tail1, List1} = case TagId of
         5 ->
             {Value, Tail} = parse_integer_tag(Rest),
-            {Tail, [{dest_addr_subunit, Value}|List]}; 
+            {Tail, [{dest_addr_subunit, Value}|List]};
         6 ->
             {Value, Tail} = parse_integer_tag(Rest),
-            {Tail, [{dest_network_type, Value}|List]};      
+            {Tail, [{dest_network_type, Value}|List]};
         7 ->
             {Value, Tail} = parse_integer_tag(Rest),
             {Tail, [{dest_bearer_type, Value}|List]};
@@ -258,29 +259,29 @@ get_tag(<<TagId:16/integer, Rest/binary>>, List) ->
             {Tail, [{source_network_type, Value}|List]};
         15 ->
             {Value, Tail} = parse_integer_tag(Rest),
-            {Tail, [{source_bearer_type, Value}|List]}; 
-        16 ->   
+            {Tail, [{source_bearer_type, Value}|List]};
+        16 ->
             {Value, Tail} = parse_integer_tag(Rest),
             {Tail, [{source_telematics_id, Value}|List]};
         23 ->
-            {Value, Tail} = parse_integer_tag(Rest),        
+            {Value, Tail} = parse_integer_tag(Rest),
             {Tail, [{qos_time_to_live, Value}|List]};
-        25 ->   
-            {Value, Tail} = parse_integer_tag(Rest),        
+        25 ->
+            {Value, Tail} = parse_integer_tag(Rest),
             {Tail, [{payload_type, Value}|List]};
         29 ->
             {Val, Tail} = parse_other_tag(Rest),
-            Value = parse_c_octets(Val, []), 
+            Value = parse_c_octets(Val, []),
             {Tail, [{additional_status_info_text, Value}|List]};
         30 ->
             {Val, Tail} = parse_other_tag(Rest),
-            Value = parse_c_octets(Val, []), 
+            Value = parse_c_octets(Val, []),
             {Tail, [{receipted_message_id, Value}|List]};
         48 ->
             {Value, Tail} = parse_integer_tag(Rest),            %% value is bitmask, not integer
             {Tail, [{ms_msg_wait_facilities, Value}|List]};
         513 ->
-            {Value, Tail} = parse_integer_tag(Rest),        
+            {Value, Tail} = parse_integer_tag(Rest),
             {Tail, [{privacy_indicator, Value}|List]};
         514 ->
             {Value, Tail} = parse_other_tag(Rest),
@@ -336,7 +337,7 @@ get_tag(<<TagId:16/integer, Rest/binary>>, List) ->
         1058 ->
             {Value, Tail} = parse_integer_tag(Rest),
             {Tail, [{ms_availability_status, Value}|List]};
-        1059 -> 
+        1059 ->
             {Value, Tail} = parse_other_tag(Rest),
             {Tail, [{network_error_code, Value}|List]};
         1060 ->
@@ -354,7 +355,7 @@ get_tag(<<TagId:16/integer, Rest/binary>>, List) ->
             {Tail, [{message_state, Value}|List]};
         1064 ->
             {Value, Tail} = parse_integer_tag(Rest),
-            {Tail, [{congestion_state, Value}|List]};   
+            {Tail, [{congestion_state, Value}|List]};
         1281 ->
             {Value, Tail} = parse_integer_tag(Rest),
             {Tail, [{ussd_service_op, Value}|List]};
@@ -384,10 +385,10 @@ get_tag(<<TagId:16/integer, Rest/binary>>, List) ->
             {Tail, [{broadcast_error_status, Value}|List]};
         1544 ->
             {Value, Tail} = parse_integer_tag(Rest),
-            {Tail, [{broadcast_area_success, Value}|List]};   
+            {Tail, [{broadcast_area_success, Value}|List]};
         1545 ->
             {Val, Tail} = parse_other_tag(Rest),
-            Value = parse_c_octets(Val, []), 
+            Value = parse_c_octets(Val, []),
             {Tail, [{broadcast_end_time, Value}|List]};
         1546 ->
             {Value, Tail} = parse_other_tag(Rest),
@@ -397,15 +398,15 @@ get_tag(<<TagId:16/integer, Rest/binary>>, List) ->
             {Tail, [{billing_identification, Value}|List]};
         1549 ->
             {Val, Tail} = parse_other_tag(Rest),
-            Value = parse_c_octets(Val, []), 
+            Value = parse_c_octets(Val, []),
             {Tail, [{source_network_id, Value}|List]};
         1550 ->
             {Val, Tail} = parse_other_tag(Rest),
-            Value = parse_c_octets(Val, []), 
+            Value = parse_c_octets(Val, []),
             {Tail, [{dest_network_id, Value}|List]};
         1551 ->
             {Value, Tail} = parse_other_tag(Rest),
-            {Tail, [{source_node_id, Value}|List]};  %% 6 decimal digits 
+            {Tail, [{source_node_id, Value}|List]};  %% 6 decimal digits
         1552 ->
             {Value, Tail} = parse_other_tag(Rest),
             {Tail, [{dest_node_id, Value}|List]};  %% 6 decimal digits
@@ -444,13 +445,13 @@ get_tag(<<TagId:16/integer, Rest/binary>>, List) ->
             {Tail, [{its_session_info, Value}|List]};
         5120 ->                                         %% official specification not support this tag !!! There is vendor specific option
             {Value, Tail} = parse_other_tag(Rest),
-            {Tail, [{fraud_prevention, Value}|List]}; 
+            {Tail, [{fraud_prevention, Value}|List]};
         5122 ->                                         %% official specification not support this tag !!! This option is from kannel SMSC
             {Value, Tail} = parse_other_tag(Rest),
-            {Tail, [{mboperator, Value}|List]}; 
+            {Tail, [{mboperator, Value}|List]};
         5123 ->                                         %% official specification not support this tag !!! This option is from kannel SMSC
             {Value, Tail} = parse_other_tag(Rest),
-            {Tail, [{mbbilling, Value}|List]}; 
+            {Tail, [{mbbilling, Value}|List]};
         5124 ->                                         %% official specification not support this tag !!! This option is from kannel SMSC
             {Value, Tail} = parse_other_tag(Rest),
             {Tail, [{mbsessionid, Value}|List]};
@@ -478,14 +479,14 @@ get_tag(<<TagId:16/integer, Rest/binary>>, List) ->
         _ ->
             ?LOG_WARNING("Unknown smpp option ~p~n", [TagId]),
             {<<>>, List}
-    end, 
+    end,
     get_tag(Tail1, List1).
-             
-parse_integer_tag(Bin) ->  
+
+parse_integer_tag(Bin) ->
     <<L:16/integer, _>> = Bin,
     Len = L*8,
     <<L:16/integer, Value:Len/integer, Tail/binary>> = Bin,
     {Value, Tail}.
-    
+
 parse_other_tag(<<Len:16/integer, Value:Len/binary, Tail/binary>>) ->
-    {Value, Tail}.     
+    {Value, Tail}.

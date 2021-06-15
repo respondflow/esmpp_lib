@@ -5,12 +5,12 @@
 -export([encode/2, encode/3]).
 
 %% API
--spec encode(atom(), tuple()) -> 
+-spec encode(atom(), tuple()) ->
     binary().
 encode(Name, Param) ->
     encode(Name, Param, []).
 
--spec encode(atom(), list(), list()) -> 
+-spec encode(atom(), list(), list()) ->
     binary().
 encode(Name, Param, List) ->
     case Name of
@@ -57,13 +57,13 @@ bind(ComId, Param) ->
     Pass = get_binary(password, Param),
     LenP = byte_size(Pass),
     IVer = get_binary(interface_version, Param),
-    IfaceVer = convert_smpp_version(IVer),  
+    IfaceVer = convert_smpp_version(IVer),
     AddrTon = proplists:get_value(addr_ton, Param),
     AddrNpi = proplists:get_value(addr_npi, Param),
     Bin = ?BIND(1234, ComId, SeqNum, SysId, LenId, Pass, LenP, SysType, LenT,
                             IfaceVer, AddrTon, AddrNpi, 0, 8),
     Length = byte_size(Bin),
-    ?BIND(Length, ComId, SeqNum, SysId, LenId, Pass, LenP, SysType, LenT, IfaceVer, 
+    ?BIND(Length, ComId, SeqNum, SysId, LenId, Pass, LenP, SysType, LenT, IfaceVer,
                     AddrTon, AddrNpi, 0, 8).
 
 unbind(Param) ->
@@ -71,16 +71,16 @@ unbind(Param) ->
     ?UNBIND(SeqNum).
 
 unbind_resp([{sequence_number, SeqNum}]) ->
-    ?UNBIND_RESP(SeqNum, 0).   
+    ?UNBIND_RESP(SeqNum, 0).
 
-%% TODO 
+%% TODO
 generic_nack(List) ->
     SeqNum = proplists:get_value(sequence_number, List),
     ErrCode = proplists:get_value(status, List),
     ?GENERIC_NACK(SeqNum, ErrCode).
 
 submit_sm(List, Param) ->
-    Handler = proplists:get_value(handler, Param), 
+    Handler = proplists:get_value(handler, Param),
     Txt = get_binary(text, List),
     SeqNum = proplists:get_value(seq_n, Param),
     Daddr = get_binary(dest_addr, List),
@@ -99,21 +99,21 @@ submit_sm(List, Param) ->
             DaddrTon = proplists:get_value(dest_addr_ton, Param),
             DaddrNpi = proplists:get_value(dest_addr_npi, Param),
             ok = Handler:sequence_number_handler([{sequence_number, SeqNum}|List]),
-            Bin = ?SUBMIT_SM(1234, SeqNum, ServType, LenType, SaddrTon, SaddrNpi, 
+            Bin = ?SUBMIT_SM(1234, SeqNum, ServType, LenType, SaddrTon, SaddrNpi,
                         Saddr, LenSaddr, DaddrTon, DaddrNpi, Daddr, LenDaddr,
                         Encode, LenTxt, Text),
             Length = byte_size(Bin),
-            Bin1 = ?SUBMIT_SM(Length, SeqNum, ServType, LenType, SaddrTon, 
-                    SaddrNpi, Saddr, LenSaddr, DaddrTon, DaddrNpi, Daddr, 
+            Bin1 = ?SUBMIT_SM(Length, SeqNum, ServType, LenType, SaddrTon,
+                    SaddrNpi, Saddr, LenSaddr, DaddrTon, DaddrNpi, Daddr,
                     LenDaddr, Encode, LenTxt, Text),
             [Bin1];
         true ->
             Tuple = cut_txt(Text, 1, MaxLen, []),
             SarRefNum = sar_ref_num(Param),
             assemble_submit(Tuple, SarRefNum, List, Param, Encode, [])
-    end.        
+    end.
 
-data_sm(List, Param) -> 
+data_sm(List, Param) ->
     Daddr = get_binary(dest_addr, List),
     Txt = proplists:get_value(text, List),
     {Encode, _} = exam_unicode(Txt, Param),
@@ -129,13 +129,13 @@ data_sm(List, Param) ->
     SaddrNpi = proplists:get_value(source_addr_npi, Param),
     DaddrTon = proplists:get_value(dest_addr_ton, Param),
     DaddrNpi = proplists:get_value(dest_addr_npi, Param),
-    Bin = ?DATA_SM(1234, SeqNum, ServType, LenType, SaddrTon, SaddrNpi, 
+    Bin = ?DATA_SM(1234, SeqNum, ServType, LenType, SaddrTon, SaddrNpi,
                     Saddr, LenSaddr, DaddrTon, DaddrNpi, Daddr, LenDaddr, Encode, Text, LenTxt),
     Length = byte_size(Bin),
-    ?DATA_SM(Length, SeqNum, ServType, LenType, SaddrTon, SaddrNpi, 
+    ?DATA_SM(Length, SeqNum, ServType, LenType, SaddrTon, SaddrNpi,
                  Saddr, LenSaddr, DaddrTon, DaddrNpi, Daddr, LenDaddr, Encode, Text, LenTxt).
 
-data_sm_resp(List) ->    
+data_sm_resp(List) ->
     SeqNum = proplists:get_value(sequence_number, List),
     Status = proplists:get_value(status, List),
     MsgId = proplists:get_value(message_id, List),
@@ -144,7 +144,7 @@ data_sm_resp(List) ->
     Length = byte_size(Bin),
     ?DATA_SM_RESP(Length, Status, SeqNum, MsgId, LenId).
 
-deliver_sm_resp(List) -> 
+deliver_sm_resp(List) ->
     SeqNum = proplists:get_value(sequence_number, List),
     Status = proplists:get_value(status, List),
     Bin = ?DELIVER_SM_RESP(1234, Status, SeqNum),
@@ -159,13 +159,13 @@ query_sm(List, Param) ->
     LenSaddr = byte_size(Saddr),
     SaddrTon = proplists:get_value(source_addr_ton, Param),
     SaddrNpi = proplists:get_value(source_addr_npi, Param),
-    Bin = ?QUERY_SM(1234, SeqNum, MsgId, Len, SaddrTon, 
+    Bin = ?QUERY_SM(1234, SeqNum, MsgId, Len, SaddrTon,
             SaddrNpi, Saddr, LenSaddr),
     Length = byte_size(Bin),
-    ?QUERY_SM(Length, SeqNum, MsgId, Len, SaddrTon, 
+    ?QUERY_SM(Length, SeqNum, MsgId, Len, SaddrTon,
             SaddrNpi, Saddr, LenSaddr).
 
-enquire_link(Param) ->    
+enquire_link(Param) ->
     SeqNum = proplists:get_value(seq_n, Param),
     ?ENQUIRE_LINK(SeqNum).
 
@@ -185,10 +185,10 @@ cancel_sm(List, Param) ->
     DaddrNpi = proplists:get_value(dest_addr_npi, Param),
     Daddr = get_binary(dest_addr, List),
     LenDaddr = byte_size(Daddr),
-    Bin = ?CANCEL_SM(1234, SeqNum, MsgId, LenId, SaddrTon, SaddrNpi, Saddr, 
+    Bin = ?CANCEL_SM(1234, SeqNum, MsgId, LenId, SaddrTon, SaddrNpi, Saddr,
                 LenSaddr, DaddrTon, DaddrNpi, Daddr, LenDaddr),
     Length = byte_size(Bin),
-    ?CANCEL_SM(Length, SeqNum, MsgId, LenId, SaddrTon, SaddrNpi, Saddr, 
+    ?CANCEL_SM(Length, SeqNum, MsgId, LenId, SaddrTon, SaddrNpi, Saddr,
                 LenSaddr, DaddrTon, DaddrNpi, Daddr, LenDaddr).
 
 replace_sm(List, Param) ->
@@ -201,7 +201,7 @@ replace_sm(List, Param) ->
     SaddrNpi = proplists:get_value(source_addr_npi, Param),
     Txt = get_binary(text, List),
     LenTxt = byte_size(Txt),
-    Bin = ?REPLACE_SM(1234, SeqNum, MsgId, LenId, SaddrTon, SaddrNpi, 
+    Bin = ?REPLACE_SM(1234, SeqNum, MsgId, LenId, SaddrTon, SaddrNpi,
                         Saddr, LenS, LenTxt, Txt),
     Length = byte_size(Bin),
     ?REPLACE_SM(Length, SeqNum, MsgId, LenId, SaddrTon, SaddrNpi, Saddr,
@@ -211,7 +211,7 @@ assemble_submit({_SarTotSeg, []}, _SarRefNum, _List, _Param, _Encode, Acc) ->
     lists:reverse(Acc);
 assemble_submit({SarTotSeg, [H|T]}, SarRefNum, List, Param, Encode, Acc) ->
     {SarSegNum, Chunk} = H,
-    Handler = proplists:get_value(handler, Param), 
+    Handler = proplists:get_value(handler, Param),
     Daddr = get_binary(dest_addr, List),
     SeqNum = proplists:get_value(seq_n, Param),
     ServType = get_binary(service_type, Param),
@@ -227,35 +227,35 @@ assemble_submit({SarTotSeg, [H|T]}, SarRefNum, List, Param, Encode, Acc) ->
     DaddrNpi = proplists:get_value(dest_addr_npi, Param),
     NewList = lists:keyreplace(text, 1, List, {text, Chunk}),
     ok = Handler:sequence_number_handler([{sequence_number, SeqNum}|NewList]),
-    Bin = ?SUBMIT_SM_CUT(1234, SeqNum, ServType, LenType, SaddrTon, SaddrNpi, 
+    Bin = ?SUBMIT_SM_CUT(1234, SeqNum, ServType, LenType, SaddrTon, SaddrNpi,
                 Saddr, LenSaddr, DaddrTon, DaddrNpi, Daddr, LenDaddr,
                 Encode, LenMsg, Chunk, LenChunk, SarRefNum, SarSegNum, SarTotSeg),
     Length = byte_size(Bin),
-    Bin1 = ?SUBMIT_SM_CUT(Length, SeqNum, ServType, LenType, SaddrTon, SaddrNpi, 
+    Bin1 = ?SUBMIT_SM_CUT(Length, SeqNum, ServType, LenType, SaddrTon, SaddrNpi,
                     Saddr, LenSaddr, DaddrTon, DaddrNpi, Daddr, LenDaddr,
                     Encode, LenMsg, Chunk, LenChunk, SarRefNum, SarSegNum, SarTotSeg),
     Param1 = lists:keyreplace(seq_n, 1, Param, {seq_n, SeqNum+1}),
     assemble_submit({SarTotSeg, T}, SarRefNum, List, Param1, Encode, [Bin1|Acc]).
 
 get_text_by_code(Encode, Bin) ->
-    case Encode of 
+    case Encode of
         0 ->
             _GsmBin = esmpp_lib_latin1_to_gsm:latin1_to_gsm(Bin, <<>>);
         8 ->
 	        _NewBin = unicode:characters_to_binary(Bin, utf8, utf16);
         _ ->
-            Bin    
+            Bin
     end.
 
 exam_unicode(Bin, Param) ->
     Latin1 = binary_to_list(Bin),
     Utf = unicode:characters_to_list(Bin),
-    case Latin1 =/= Utf of 
+    case Latin1 =/= Utf of
         true ->
 	        {8, 140};
         false ->
             Num = proplists:get_value(data_coding, Param),
-            case Num of 
+            case Num of
                 undefined -> {0, 160};
 	            0 -> {0, 160};
                 3 -> {3, 140};
@@ -272,16 +272,17 @@ exam_unicode(Bin, Param) ->
             end
     end.
 
-convert_smpp_version(Param) ->
-    case is_integer(Param) of
-        false ->
-            case Param of
-                <<"3.4">> -> 52;
-                <<"5.0">> -> 80
-            end;
-        true ->
-            Param
-    end.         
+convert_smpp_version(_Param) ->
+    80.
+    % case is_integer(Param) of
+    %     false ->
+    %         case Param of
+    %             <<"3.4">> -> 52;
+    %             <<"5.0">> -> 80
+    %         end;
+    %     true ->
+    %         Param
+    % end.
 
 sar_ref_num(Param) ->
     Sar = proplists:get_value(sar, Param),
@@ -295,7 +296,7 @@ sar_ref_num(Param) ->
         WorkerPid ! {update_state, {sar, Key1}},
 	    Key1
     end.
- 
+
 cut_txt(Text, Num, MaxLen, Acc) ->
     ChunkLen = case MaxLen of
         160 -> 153;
@@ -314,13 +315,13 @@ cut_txt(Text, Num, MaxLen, Acc) ->
 get_binary(Name, List) ->
     Param = proplists:get_value(Name, List),
     case is_integer(Param) of
-        true -> 
+        true ->
             Param;
         false ->
             case is_binary(Param) of
                 true -> Param;
                 false -> list_to_binary(Param)
             end
-    end.    
-            
-                    
+    end.
+
+
